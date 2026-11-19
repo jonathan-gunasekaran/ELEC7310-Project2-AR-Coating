@@ -23,8 +23,8 @@ x = 0:delta_x:max_x;    % spatial array
 
 % define temporal array based on spatial step value to ensure numerical
 % stability
-tmax = 1.2e-6;             % simulation end time
-S = 0.8;                % Courant stability factor (want less than 1 in all media)
+tmax = 1.4e-6;             % simulation end time
+S = 0.9;                % Courant stability factor (want less than 1 in all media)
 delta_t = S*delta_x/c;  % time step
 t = 0;                  % current simulation time (start at 0)
 
@@ -63,6 +63,10 @@ x_dist_to_probe = max_x/10;
 probe1_x_ind = boundary_x_ind(1) - x_dist_to_probe/delta_x;
 probe2_x_ind = boundary_x_ind(1) + x_dist_to_probe/delta_x;
 
+t_vec = t:delta_t:tmax;
+E_probe1 = zeros(size(t_vec));
+E_probe2 = zeros(size(t_vec));
+
 
 %% 1-D FDTD Loop
 fdtd_movie = figure;
@@ -73,8 +77,9 @@ loop_iter = 0;
 while t <= tmax
     loop_iter = loop_iter + 1;
     
-    % Add source (incoming E-field) - simulate for 5 cycles
-    if t <= 5/f0
+    % Add source (incoming E-field) - simulate for num_cycles
+    num_cycles = 5;
+    if t <= num_cycles/f0
         E(1,3) = sin(2*pi*f0*t);
     else
         E(1,3) = 0;
@@ -89,6 +94,11 @@ while t <= tmax
     % update stored E-field history with calculated values for the current time step
     E(:,1) = E(:,2);
     E(:,2) = E(:,3);
+
+    % save E-field value at probe positions
+    t_ind = floor(t/delta_t)+1;
+    E_probe1(t_ind) = E(probe1_x_ind,2);
+    E_probe2(t_ind) = E(probe2_x_ind,2);
 
     % increment time
     t = t + delta_t;
@@ -113,4 +123,20 @@ toc
 
 
 %% Plotting
+sec2usec = @(x) x.*1e6;
 
+figure;
+subplot(2,1,1);
+plot(sec2usec(t_vec), E_probe1, 'DisplayName','Incident + Reflected Wave', 'LineWidth',2);
+hold on;
+yline(0);
+subplot(2,1,2);
+plot(sec2usec(t_vec), E_probe2, 'DisplayName','Transmitted Wave', 'LineWidth',2);
+hold on;
+yline(0);
+
+xlabel("t (us)");
+ylabel("E (V/m)");
+title("E-Field Probe Measurements")
+
+legend('Location','best');
