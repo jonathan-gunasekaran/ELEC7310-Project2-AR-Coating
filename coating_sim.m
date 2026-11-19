@@ -18,12 +18,12 @@ lambda_0 = c/f0;
 
 % define 1-D spatial array 
 delta_x = 0.01;         % spatial step in meters
-max_x = 400;            % max bound on simulation space
+max_x = 500;            % max bound on simulation space
 x = 0:delta_x:max_x;    % spatial array
 
 % define temporal array based on spatial step value to ensure numerical
 % stability
-tmax = 1e-6;             % simulation end time
+tmax = 1.2e-6;             % simulation end time
 S = 0.8;                % Courant stability factor (want less than 1 in all media)
 delta_t = S*delta_x/c;  % time step
 t = 0;                  % current simulation time (start at 0)
@@ -58,9 +58,10 @@ E = zeros(length(x), 3);
 
 % define locations for the virtual electric field probes 
 boundary_x_ind = find(diff(eps));
-ind_layer_width = unique(diff(boundary_x_ind));
-probe1_x_ind = boundary_x_ind(1) - ind_layer_width;
-probe2_x_ind = boundary_x_ind(end) + ind_layer_width;
+
+x_dist_to_probe = max_x/10;
+probe1_x_ind = boundary_x_ind(1) - x_dist_to_probe/delta_x;
+probe2_x_ind = boundary_x_ind(1) + x_dist_to_probe/delta_x;
 
 
 %% 1-D FDTD Loop
@@ -98,10 +99,11 @@ while t <= tmax
         plot(x, E(:,2));
         yline(0);
         xline(x(boundary_x_ind));
-        title(["t = ", t, "s"]);
+        xline(x([probe1_x_ind, probe2_x_ind]), '--r');
+        title(["t = " + num2str(t) + "s"]);
         xlabel("x (m)");
         ylabel("E (V/m)");
-        ylim([-3, 3]);
+        ylim([-2.5, 2.5]);
         xlim([x(1), x(end)]);
         drawnow limitrate;
     end
