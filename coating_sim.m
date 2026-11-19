@@ -39,7 +39,8 @@ eps = ones(size(x)) .* epsilon_0;
 layer_start_x = 0.4*max_x;  % start point for multi-layer interface in x
 
 for ii=1:num_layers
-    layer_end_x = round(layer_start_x+lambda_0/4, 2);
+    lambda = lambda_0/sqrt(layer_eps_r(ii));
+    layer_end_x = round(layer_start_x+lambda/4, 2);
     
     layer_x_ind = find(x >= layer_start_x & x < layer_end_x);
     eps(layer_x_ind) = eps(layer_x_ind) .* layer_eps_r(ii);
