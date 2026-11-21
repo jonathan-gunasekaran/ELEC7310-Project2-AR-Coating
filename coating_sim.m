@@ -64,7 +64,7 @@ probe2_x_ind = boundary_x_ind(1) + x_dist_to_probe/delta_x;
 t_vec = t:delta_t:tmax;
 
 
-%% Set up frequency sweep
+%% Set up frequency sweep for iterated FDTD
 bw = f0;  % look at band from f0-f0/2 to f0+f0/2
 num_f_sweep_pts = 21;   % needs to be odd to include center freq
 f = linspace(f0-bw/2, f0+bw/2, num_f_sweep_pts);
@@ -145,7 +145,7 @@ for f_ind = 1:length(f)
     
     t = 0;
     
-    %% Plotting of Reflection Coefficient
+    % Plotting of Reflected/Transmitted Waves
     sec2usec = @(x) x.*1e6;
     
     if plot_probe_meas
@@ -169,7 +169,8 @@ for f_ind = 1:length(f)
         sgtitle("E-Field Probe Measurements")
     end
     
-    
+
+    %% Calculation of Reflection Coefficient
     % filter out undesired frequency components to determine reflection
     % coefficient at current operating frequency
     
@@ -235,19 +236,19 @@ end
 
 % Plot simulated reflection coefficient as a function of frequency
 figure;
-plot(f/1e6, refl_coef, 'LineWidth',2);
+plot(f/1e6, abs(refl_coef), 'LineWidth',2);
 xlabel("Frequency (MHz)")
 ylabel("Input Reflection Coefficient")
-title("Input Reflection Coefficient vs. Frequency")
+title("Numerical Input Reflection Coefficient vs. Frequency")
 
 
 
 %% Analytical Solution
-
 analyt_refl_coef = zeros(size(f));
 
 all_eps_r = [1, layer_eps_r, load_eps_r];
 
+% f = 20e6;
 for f_ind=1:length(f)
     f_oper = f(f_ind);
     
@@ -269,3 +270,18 @@ xlabel("Frequency (MHz)")
 ylabel("Input Reflection Coefficient")
 title("Analytical Input Reflection Coefficient vs. Frequency")
 
+
+
+%% Comparison
+% overlay numerical and analytical solutions
+figure;
+plot(f/1e6, abs(refl_coef), 'DisplayName','Numerical', 'LineWidth',2);
+hold on;
+plot(f/1e6, abs(analyt_refl_coef), 'DisplayName','Analytical', 'LineWidth',2);
+legend('Location','best'); 
+xlabel("Frequency (MHz)")
+ylabel("Input Reflection Coefficient")
+title("Analytical vs. Numerical Characterization")
+
+MSE = mean((refl_coef-analyt_refl_coef).^2,"all");
+fprintf("MSE = %f", MSE);
