@@ -68,7 +68,6 @@ t_vec = t:delta_t:tmax;
 bw = f0;  % look at band from f0-f0/2 to f0+f0/2
 num_f_sweep_pts = 21;   % needs to be odd to include center freq
 f = linspace(f0-bw/2, f0+bw/2, num_f_sweep_pts);
-f = linspace(0, 2*f0, num_f_sweep_pts); f = f(2:end);
 % f = s0e6;
 % f = [10, 30] * 1e6;
 
@@ -220,7 +219,11 @@ for f_ind = 1:length(f)
     % E0_r = max(window_max_E0_f_oper(demarcation_t_ind:end));
     % E0_i = max(window_max_E0_f_oper(1:demarcation_t_ind));
 
-    [~,refl_wave_sample_t_ind] = min(abs(t_vec - 2.65e-6));
+
+    % NOTE: fixed index approach requires BW = f0 for current tstamp value,
+    % so plot from f0-f0/2 to f0+f0/2
+    refl_wave_snapshot_window_start_time = 2.65e-6;
+    [~,refl_wave_sample_t_ind] = min(abs(t_vec - refl_wave_snapshot_window_start_time));
     refl_wave_sample = E_probe1(refl_wave_sample_t_ind:refl_wave_sample_t_ind+t_ind_diff);
 
     E0_r = max(refl_wave_sample);
@@ -236,4 +239,33 @@ plot(f/1e6, refl_coef, 'LineWidth',2);
 xlabel("Frequency (MHz)")
 ylabel("Input Reflection Coefficient")
 title("Input Reflection Coefficient vs. Frequency")
+
+
+
+%% Analytical Solution
+
+analyt_refl_coef = zeros(size(f));
+
+all_eps_r = [1, layer_eps_r, load_eps_r];
+
+for f_ind=1:length(f)
+    f_oper = f(f_ind);
+    
+    theta = pi/2 * f_oper/f0;
+    for n=1:length(all_eps_r)-1
+        gamma_n = (sqrt(all_eps_r(n)) - sqrt(all_eps_r(n+1))) ./ ...
+                    (sqrt(all_eps_r(n)) + sqrt(all_eps_r(n+1)));
+
+        gamma_n = gamma_n * exp(-1j*2*(n-1)*theta);
+
+        analyt_refl_coef(f_ind) = analyt_refl_coef(f_ind) + gamma_n;
+    end
+end
+
+% Plot analytical reflection coefficient as a function of frequency
+figure;
+plot(f/1e6, abs(analyt_refl_coef), 'LineWidth',2);
+xlabel("Frequency (MHz)")
+ylabel("Input Reflection Coefficient")
+title("Analytical Input Reflection Coefficient vs. Frequency")
 
