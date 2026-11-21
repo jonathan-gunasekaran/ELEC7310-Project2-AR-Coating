@@ -68,7 +68,7 @@ t_vec = t:delta_t:tmax;
 bw = f0;  % look at band from f0-f0/2 to f0+f0/2
 num_f_sweep_pts = 21;   % needs to be odd to include center freq
 f = linspace(f0-bw/2, f0+bw/2, num_f_sweep_pts);
-% f = s0e6;
+% f = 20e6;
 % f = [10, 30] * 1e6;
 
 refl_coef = zeros(size(f));
@@ -284,4 +284,7 @@ ylabel("Input Reflection Coefficient")
 title("Analytical vs. Numerical Characterization")
 
 MSE = mean((refl_coef-analyt_refl_coef).^2,"all");
-fprintf("MSE = %f", MSE);
+fprintf("MSE = %f\n", MSE);
+
+analyt_var = var(analyt_refl_coef);
+fprintf("Var(analyt_gamma) = %f\n", analyt_var);
